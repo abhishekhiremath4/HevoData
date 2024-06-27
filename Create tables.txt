@@ -1,0 +1,44 @@
+Create table raw_customers (
+id int primary key,
+first_name text,
+last_name text
+);
+
+
+Create table raw_orders (
+id int primary key,
+user_id int,
+order_date date,
+status text
+);
+
+
+
+Create table raw_payments (
+id int primary key,
+order_id int,
+payment text,
+amount int
+);
+
+
+docker cp C:\Users\New\Desktop\Files\raw_customers.csv postgres:\
+
+docker cp C:\Users\New\Desktop\Files\raw_orders.csv postgres:\
+
+docker cp C:\Users\New\Desktop\Files\raw_payments.csv postgres:\
+
+COPY raw_customer(id,first_name,last_name)
+FROM '/raw_customers.csv'
+DELIMITER ','
+CSV HEADER;
+
+COPY raw_orders(id,user_id,order_date,status)
+FROM '/raw_orders.csv'
+DELIMITER ','
+CSV HEADER;
+
+COPY raw_payments(id,order_id,payment,amount)
+FROM '/raw_payments.csv'
+DELIMITER ','
+CSV HEADER;
