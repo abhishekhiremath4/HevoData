@@ -1,0 +1,39 @@
+with first as (
+    select id,
+    user_id customer_id,
+    order_date,
+    dense_rank() over (partition by o.user_id order by o.order_date asc) rnk
+    from customers_raw_orders o
+),
+
+recent as (
+    select id,
+    user_id customer_id,
+    order_date,
+    dense_rank() over (partition by o.user_id order by o.order_date desc) rnk
+    from customers_raw_orders o
+),
+no_orders as (
+    select user_id, count(id) number_of_orders from customers_raw_orders group by user_id
+),
+
+total_payment1 as (
+    select user_id, sum(amount) customer_lifetime_value
+    from customers_raw_payments inner join customers_raw_orders on customers_raw_orders.id = customers_raw_payments.order_id
+    group by user_id
+)
+
+select 
+c.id customer_id,
+c.first_name,
+c.last_name,
+f.order_date first_order,
+r.order_date most_recent_order,
+o.number_of_orders,
+p.customer_lifetime_value
+from customers_raw_customer c
+inner join no_orders o on o.user_id=c.id
+inner join total_payment1 p on p.user_id=c.id
+left join first f on f.customer_id= c.id and f.rnk=1
+left join recent r on r.customer_id=c.id and r.rnk=1
+
